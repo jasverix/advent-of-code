@@ -12,6 +12,6 @@ func assertResult(t *testing.T, expected int, input int) {
 func TestCalculateFuelUsage(t *testing.T) {
 	assertResult(t, 2, 12)
 	assertResult(t, 2, 14)
-	assertResult(t, 654, 1969)
-	assertResult(t, 33583, 100756)
+	assertResult(t, 966, 1969)
+	assertResult(t, 50346, 100756)
 }
