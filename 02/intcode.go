@@ -3,14 +3,15 @@ package main
 import (
 	"strings"
 	"strconv"
+	"errors"
 )
 
-func makeIntegerArray(input string) ([]int64, error) {
+func makeIntegerArray(input string) ([]int, error) {
 	inputStrings := strings.Split(input, ",")
-	inputs := make([]int64, len(inputStrings))
+	inputs := make([]int, len(inputStrings))
 
 	for index, element := range inputStrings {
-		inputInteger, parseIntError := strconv.ParseInt(element, 10, 64)
+		inputInteger, parseIntError := strconv.Atoi(element)
 		if parseIntError != nil {
 			return nil, parseIntError
 		}
@@ -21,7 +22,7 @@ func makeIntegerArray(input string) ([]int64, error) {
 	return inputs, nil
 }
 
-func execute(inputs []int64) []int64 {
+func execute(inputs []int) ([]int, error) {
 	length := len(inputs)
 
 	for i := 0; i < length; i += 4 {
@@ -30,9 +31,18 @@ func execute(inputs []int64) []int64 {
 			break
 		}
 
+		if i + 2 >= length {
+			return nil, errors.New("Index out of range")
+		}
+
 		firstPosition := inputs[i+1]
 		secondPosition := inputs[i+2]
 		resultPosition := inputs[i+3]
+
+		if firstPosition >= length || secondPosition >= length || resultPosition >= length {
+			return nil, errors.New("Index out of range")
+		}
+
 		firstValue := inputs[firstPosition]
 		secondValue := inputs[secondPosition]
 
@@ -44,9 +54,9 @@ func execute(inputs []int64) []int64 {
 		}
 	}
 
-	return inputs
+	return inputs, nil
 }
 
-func intcode(input []int64) []int64 {
+func intcode(input []int) ([]int, error) {
 	return execute(input)
 }
