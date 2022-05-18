@@ -42,7 +42,7 @@ func main() {
 	for index, element := range lines {
 		number, floatParsingError := strconv.ParseInt(strings.Trim(element, " \n\r"), 10, 64)
 		if floatParsingError != nil {
-			fmt.Println("Error while parsing input data on line " + string(rune(index)))
+			fmt.Println("Error while parsing input data on line " + strconv.Itoa(index))
 		}
 
 		sum += calculateFuelUsage(int(number))
