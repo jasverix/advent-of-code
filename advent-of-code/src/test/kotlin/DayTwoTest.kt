@@ -7,6 +7,6 @@ class DayTwoTest {
         val input = "A Y\n" +
                 "B X\n" +
                 "C Z"
-        assertEquals(15, getTotalScore(input))
+        assertEquals(12, getTotalScore(input))
     }
 }

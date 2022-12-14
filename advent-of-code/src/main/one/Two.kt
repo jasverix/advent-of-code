@@ -36,19 +36,16 @@ class Round(private val input: String) {
         }
     }
 
-    private fun getUserShape(input: String): Shape {
-        return when(input) {
-            "X" -> Shape.Rock
-            "Y" -> Shape.Paper
-            "Z" -> Shape.Scissors
-            else -> throw IllegalArgumentException("Bad input")
-        }
-    }
-
     fun getUserScore(): Int {
         val data = input.split(("\\s+".toRegex()))
-        val userShape = getUserShape(data[1])
-        return userShape.fight(getOpponentShape(data[0])) + userShape.score
+        val opponentShape = getOpponentShape(data[0])
+        val userShape = when (data[1]) {
+            "X" -> opponentShape.winsOver()
+            "Y" -> opponentShape
+            "Z" -> opponentShape.beatenBy()
+            else -> throw IllegalArgumentException("Bad input")
+        }
+        return userShape.fight(opponentShape) + userShape.score
     }
 }
 
