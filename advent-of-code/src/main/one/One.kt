@@ -12,10 +12,17 @@ fun getMaxCarryCapacity(input: String): Int {
     return getElves(input).maxOf { e -> e.carryCapacity }
 }
 
+fun getTopTreeCapacity(input: String): Int {
+    return getElves(input)
+        .sortedByDescending { e -> e.carryCapacity }
+        .take(3)
+        .sumOf { e -> e.carryCapacity }
+}
+
 fun main() {
     val input = Elf::class.java.getResourceAsStream("input-01.txt")?.bufferedReader()?.readText()
-    // val input = File("src/main/resources/input-01.txt").readText()
     if (input != null) {
-        println(getMaxCarryCapacity(input))
+        println("Elf with most capacity: " + getMaxCarryCapacity(input))
+        println("Compined top tree capacities: " + getTopTreeCapacity(input))
     }
 }
