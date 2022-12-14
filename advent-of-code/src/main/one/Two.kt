@@ -13,13 +13,11 @@ enum class Shape(val score: Int) {
         override fun winsOver(): Shape = Paper
     };
 
-    fun fight(shape: Shape): Int {
-        return when (true) {
-            (shape == this) -> 3
-            (shape == this.beatenBy()) -> 0
-            (shape == this.winsOver()) -> 6
-            else -> throw IllegalArgumentException("Illegal shape")
-        }
+    fun fight(shape: Shape): Int = when (true) {
+        (shape == this) -> 3
+        (shape == this.beatenBy()) -> 0
+        (shape == this.winsOver()) -> 6
+        else -> throw IllegalArgumentException("Illegal shape")
     }
 
     abstract fun beatenBy(): Shape
@@ -27,13 +25,11 @@ enum class Shape(val score: Int) {
 }
 
 class Round(private val input: String) {
-    private fun getOpponentShape(input: String): Shape {
-        return when(input) {
-            "A" -> Shape.Rock
-            "B" -> Shape.Paper
-            "C" -> Shape.Scissors
-            else -> throw IllegalArgumentException("Bad input")
-        }
+    private fun getOpponentShape(input: String): Shape = when(input) {
+        "A" -> Shape.Rock
+        "B" -> Shape.Paper
+        "C" -> Shape.Scissors
+        else -> throw IllegalArgumentException("Bad input")
     }
 
     fun getUserScore(): Int {
@@ -49,10 +45,9 @@ class Round(private val input: String) {
     }
 }
 
-fun getTotalScore(input: String): Int {
-    return input.trim().split("\n")
-        .sumOf { l -> Round(l).getUserScore() }
-}
+fun getTotalScore(input: String): Int = input
+    .trim().split("\n")
+    .sumOf { l -> Round(l).getUserScore() }
 
 fun main() {
     val input = Elf::class.java.getResourceAsStream("input-02.txt")?.bufferedReader()?.readText()
