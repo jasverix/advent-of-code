@@ -16,6 +16,6 @@ fun main() {
     val input = Elf::class.java.getResourceAsStream("input-01.txt")?.bufferedReader()?.readText()
     if (input != null) {
         println("Elf with most capacity: " + getMaxCarryCapacity(input))
-        println("Compined top tree capacities: " + getTopTreeCapacity(input))
+        println("Combined top tree capacities: " + getTopTreeCapacity(input))
     }
 }
