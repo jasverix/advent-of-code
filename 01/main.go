@@ -3,50 +3,44 @@ package main
 import (
 	"adventure-of-code/utils"
 	"fmt"
-	"io/ioutil"
-	"math"
+	"os"
 	"strconv"
 	"strings"
 )
 
-func calculateFuelUsage(mass int) int {
-	if mass == 0 {
-		return 0
+func calculate(input string) int {
+	elves := strings.Split(input, "\n\n")
+	maxCarryCapacity := 0
+	for _, elf := range elves {
+		carryCapacity := getCarryCapacity(elf)
+		if carryCapacity > maxCarryCapacity {
+			maxCarryCapacity = carryCapacity
+		}
 	}
-	fuelRequirement := int(math.Floor(float64(mass)/3) - 2)
+	return maxCarryCapacity
+}
 
-	if fuelRequirement > 0 {
-		fuelRequirement = fuelRequirement + calculateFuelUsage(fuelRequirement)
+func getCarryCapacity(elfInput string) int {
+	carryCapacity := 0
+	calories := strings.Split(elfInput, "\n")
+	for _, cal := range calories {
+		calValue, err := strconv.Atoi(cal)
+		if err == nil {
+			carryCapacity += calValue
+		}
 	}
-
-	if fuelRequirement < 0 {
-		return 0
-	}
-
-	return fuelRequirement
+	return carryCapacity
 }
 
 func main() {
-	fileBinary, fileReadingError := ioutil.ReadFile(utils.RelativeFile("input.txt"))
+	fileBinary, fileReadingError := os.ReadFile(utils.RelativeFile("input.txt"))
 	if fileReadingError != nil {
 		fmt.Println("Error while reading input file: " + fileReadingError.Error())
 	}
 
 	// convert file contents to array of lines
 	fileContents := strings.Trim(string(fileBinary), " \n\r")
-	lines := strings.Split(fileContents, "\n")
-
-	var sum = 0
-
-	// print the lines
-	for index, element := range lines {
-		number, floatParsingError := strconv.ParseInt(strings.Trim(element, " \n\r"), 10, 64)
-		if floatParsingError != nil {
-			fmt.Println("Error while parsing input data on line " + strconv.Itoa(index))
-		}
-
-		sum += calculateFuelUsage(int(number))
-	}
+	sum := calculate(fileContents)
 
 	fmt.Printf("Result: %v\n", sum)
 }
