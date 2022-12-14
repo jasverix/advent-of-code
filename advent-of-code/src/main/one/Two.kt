@@ -1,57 +1,46 @@
 
-abstract class Shape(val score: Int) {
-    abstract fun fight(shape: Shape): Int
-}
+enum class Shape(val score: Int) {
+    Rock(1) {
+        override fun beatenBy(): Shape = Paper
+        override fun winsOver(): Shape = Scissors
+    },
+    Paper(2) {
+        override fun beatenBy(): Shape = Scissors
+        override fun winsOver(): Shape = Rock
+    },
+    Scissors(3) {
+        override fun beatenBy(): Shape = Rock
+        override fun winsOver(): Shape = Paper
+    };
 
-class Rock: Shape(1) {
-    override fun fight(shape: Shape): Int {
-        return when(true) {
-            (shape is Rock) -> 3
-            (shape is Paper) -> 0
-            (shape is Scissors) -> 6
-            else -> 0
-        }
-    }
-}
-
-class Paper: Shape(2) {
-    override fun fight(shape: Shape): Int {
-        return when(true) {
-            (shape is Rock) -> 6
-            (shape is Paper) -> 3
-            (shape is Scissors) -> 0
-            else -> 0
-        }
-    }
-}
-
-class Scissors: Shape(3) {
-    override fun fight(shape: Shape): Int {
-        return when(true) {
-            (shape is Rock) -> 0
-            (shape is Paper) -> 6
-            (shape is Scissors) -> 3
-            else -> 0
+    fun fight(shape: Shape): Int {
+        return when (true) {
+            (shape == this) -> 3
+            (shape == this.beatenBy()) -> 0
+            (shape == this.winsOver()) -> 6
+            else -> throw IllegalArgumentException("Illegal shape")
         }
     }
 
+    abstract fun beatenBy(): Shape
+    abstract fun winsOver(): Shape
 }
 
 class Round(private val input: String) {
     private fun getOpponentShape(input: String): Shape {
         return when(input) {
-            "A" -> Rock()
-            "B" -> Paper()
-            "C" -> Scissors()
+            "A" -> Shape.Rock
+            "B" -> Shape.Paper
+            "C" -> Shape.Scissors
             else -> throw IllegalArgumentException("Bad input")
         }
     }
 
     private fun getUserShape(input: String): Shape {
         return when(input) {
-            "X" -> Rock()
-            "Y" -> Paper()
-            "Z" -> Scissors()
+            "X" -> Shape.Rock
+            "Y" -> Shape.Paper
+            "Z" -> Shape.Scissors
             else -> throw IllegalArgumentException("Bad input")
         }
     }
