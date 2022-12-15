@@ -8,8 +8,8 @@ object DayFive {
         private val steps = input.split('\n')
             .map { l -> ProcedureStep(l) }
 
-        fun run(storage: Storage) {
-            steps.forEach { s -> s.run(storage) }
+        fun run(storage: Storage, version: Int) {
+            steps.forEach { s -> s.run(storage, version) }
         }
     }
 
@@ -28,10 +28,10 @@ object DayFive {
             this.toIndex = toIndex.toInt()
         }
 
-        fun run(storage: Storage) {
+        fun run(storage: Storage, version: Int) {
             val from = storage.getStack(fromIndex)
             val to = storage.getStack(toIndex)
-            from.move(amount, to)
+            from.move(amount, to, version)
         }
     }
 
@@ -46,11 +46,20 @@ object DayFive {
             return crates.last()
         }
 
-        fun move(amount: Int, to: Stack) {
+        fun move(amount: Int, to: Stack, version: Int) {
             if(amount == 0) return
-            for(i in 1..amount) {
-                to.add(crates.removeLast())
+            when (version) {
+                1 -> moveOneByOne(amount, to)
+                2 -> moveStackByStack(amount, to)
             }
+        }
+
+        private fun moveOneByOne(amount: Int, to: Stack) {
+            (1..amount).forEach { _ -> to.add(crates.removeLast()) }
+        }
+
+        private fun moveStackByStack(amount: Int, to: Stack) {
+            (1..amount).map { crates.removeLast() }.reversed().forEach { c -> to.add(c) }
         }
     }
 
@@ -91,14 +100,15 @@ object DayFive {
         return Pair(Storage(parts[0]), Procedure(parts[1]))
     }
 
-    fun getTopCrates(input: String): String {
+    fun getTopCrates(input: String, version: Int): String {
         val (storage, procedure) = getStorageAndOperations(input.trimEnd())
-        procedure.run(storage)
+        procedure.run(storage, version)
         return storage.getTopCrates().map { c -> c.key }.joinToString("")
     }
 }
 
 fun main() {
     val input = DayFive::class.java.getResourceAsStream("input-05.txt")?.bufferedReader()?.readText() ?: return
-    println("Top crates after movement is: " + DayFive.getTopCrates(input))
+    println("Top crates after movement 9000 is: " + DayFive.getTopCrates(input, 1))
+    println("Top crates after movement 9001 is: " + DayFive.getTopCrates(input, 2))
 }

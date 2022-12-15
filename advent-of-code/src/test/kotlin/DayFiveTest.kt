@@ -13,6 +13,7 @@ class DayFiveTest {
                 "move 3 from 1 to 3\n" +
                 "move 2 from 2 to 1\n" +
                 "move 1 from 1 to 2"
-        assertEquals("CMZ", DayFive.getTopCrates(input))
+        assertEquals("CMZ", DayFive.getTopCrates(input,1))
+        assertEquals("MCD", DayFive.getTopCrates(input,2))
     }
 }
