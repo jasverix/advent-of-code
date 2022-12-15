@@ -10,7 +10,7 @@ class DayTreeTest {
                 "wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn\n" +
                 "ttgJtRGJQctTZtZT\n" +
                 "CrZsJsPPZsGzwwsLwLmpwMDw"
-        assertEquals(157, DayTree().getTotalPriority(input))
-        assertEquals(70, DayTree().getPrioritySumOfAllCommonItems(input))
+        assertEquals(157, DayThree.DayTree().getTotalPriority(input))
+        assertEquals(70, DayThree.DayTree().getPrioritySumOfAllCommonItems(input))
     }
 }
