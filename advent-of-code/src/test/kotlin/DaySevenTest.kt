@@ -29,5 +29,6 @@ class DaySevenTest {
                 "7214296 k\n")
 
         assertEquals(95437, DaySeven.getTotalSizeOfDirectoriesBelow(100000))
+        assertEquals(24933642, DaySeven.getTotalSizeOfDirectoryToDelete(70000000, 30000000))
     }
 }

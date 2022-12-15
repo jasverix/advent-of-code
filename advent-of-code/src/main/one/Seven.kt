@@ -3,7 +3,7 @@ object DaySeven {
         fun size(): Int
     }
 
-    class File(name: String, private val size: Int): IoObject {
+    class File(private val size: Int): IoObject {
         override fun size(): Int = size
     }
 
@@ -23,8 +23,8 @@ object DaySeven {
 
         fun getOrCreateChild(name: String): Directory = getChild(name) ?: createChild(name)
 
-        fun createFile(name: String, size: Int): File {
-            val file = File(name, size)
+        fun createFile(size: Int): File {
+            val file = File(size)
             files.add(file)
             return file
         }
@@ -91,7 +91,7 @@ object DaySeven {
             val name = parts[1]
             if (parts[0] == "dir") return parentDirectory.getOrCreateChild(name)
             val size = parts[0].toInt()
-            return parentDirectory.createFile(name, size)
+            return parentDirectory.createFile(size)
         }
     }
 
@@ -131,6 +131,18 @@ object DaySeven {
         return totalSize
     }
 
+    fun getTotalSizeOfDirectoryToDelete(totalDiskSpace: Int, requiredToUpdate: Int): Int {
+        val usedSpace = terminal.getRootDirectory().size()
+        val freeSpace = totalDiskSpace - usedSpace
+        if (freeSpace >= requiredToUpdate) return 0
+        val requiredToFree = requiredToUpdate - freeSpace
+        for(d in terminal.getRootDirectory().flatten().sortedBy { d -> d.size() }) {
+            if (d.size() < requiredToFree) continue
+            return d.size()
+        }
+        return 0
+    }
+
     fun runCommands(input: String) {
         getCommands(input).forEach { c -> c.run(terminal) }
     }
@@ -140,4 +152,5 @@ fun main() {
     val input = DaySeven::class.java.getResourceAsStream("input-07.txt")?.bufferedReader()?.readText() ?: return
     DaySeven.runCommands(input)
     println("Size: " + DaySeven.getTotalSizeOfDirectoriesBelow(100000))
+    println("Size: " + DaySeven.getTotalSizeOfDirectoryToDelete(70000000, 30000000))
 }
