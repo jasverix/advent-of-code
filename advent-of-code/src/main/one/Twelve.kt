@@ -1,18 +1,9 @@
 object DayTwelve {
-    const val UNEXPORED = Int.MAX_VALUE - 100
-    const val UNREACHABLE = UNEXPORED - 10
-    class Spot(private val elevation: Char, private val x: Int, private val y: Int, private val map: Map) {
-        private var distanceTo: MutableMap<Spot, Int> = mutableMapOf()
-        private var distanceFrom: MutableMap<Spot, Int> = mutableMapOf()
+    const val UNREACHABLE = Int.MAX_VALUE - 10
 
-        private fun initDistanceTo() {
-            if (distanceTo.isNotEmpty()) return
-            distanceTo = map.getSpots().associateWith { UNEXPORED }.toMutableMap()
-            distanceFrom = map.getSpots().associateWith { UNEXPORED }.toMutableMap()
-            distanceTo[this] = 0
-            distanceFrom[this] = 0
-            enterableNeighbours().forEach { s -> distanceTo[s] = 1 }
-        }
+    class Spot(private val elevation: Char, private val x: Int, private val y: Int, private val map: Map) {
+        private var pathTo: MutableMap<Spot, List<Spot>> = mutableMapOf()
+        private val unreachableDestinations: MutableSet<Spot> = mutableSetOf()
 
         fun elevation() = when (elevation) {
             'S' -> 'a'
@@ -24,30 +15,54 @@ object DayTwelve {
 
         fun isGoal() = elevation == 'E'
 
-        fun stepsTo(spot: Spot): Int {
-            initDistanceTo()
-            while(distanceTo[spot] == UNEXPORED) {
-                if(!explore()) distanceTo[spot] = UNREACHABLE
-            }
-            return distanceTo[spot]!!
+        fun stepsTo(destination: Spot): Int {
+            val path = path(destination) ?: return UNREACHABLE
+            return path.size
         }
 
-        private fun explore(): Boolean {
-            val edges = getEdges()
-            if(edges.isEmpty()) return false
-            val from = edges.minBy { e -> e.value }.key
-            from.enterableNeighbours().forEach { s ->
-                val d = distanceTo[from]!! + 1
-                distanceTo[s] = d
-                s.distanceFrom[this] = d
+        private fun path(destination: Spot): List<Spot>? {
+            if (pathTo.containsKey(destination)) return pathTo[destination]
+            val path = path(destination, emptySet())
+            if (path == null) {
+                unreachableDestinations.add(destination)
+                return null
             }
-            return true
+            storePath(destination, path)
+            return path
         }
 
-        private fun getMappedSpots() = distanceTo.filter { t -> t.value < UNEXPORED }.map { t -> t.key }
-        private fun getEdges(): kotlin.collections.Map<Spot, Int> {
-            val mapped = getMappedSpots()
-            return mapped.filter { s -> s.enterableNeighbours().any { n -> !mapped.contains(n) } }.associateWith { s -> distanceTo[s]!! }
+        private fun path(destination: Spot, visitedSpots: Set<Spot>): List<Spot>? {
+            if (this == destination) return emptyList()
+            if (visitedSpots.contains(this)) return null
+            if (unreachableDestinations.contains(destination)) return null
+            if (pathTo.containsKey(destination)) return pathTo[destination]
+            val neighbours = enterableNeighbours()
+            if (neighbours.isEmpty()) return null
+            val possiblePaths = neighbours.mapNotNull { n -> n.path(destination, copyWithThis(visitedSpots)) }
+            if (possiblePaths.isEmpty()) return null
+            val p = possiblePaths.minBy { p -> p.size }.toMutableList()
+            p.add(0, this)
+            return p
+        }
+
+        private fun storePath(destination: Spot, path: List<Spot>) {
+            val p = path.toMutableList()
+            while (p.size > 0) {
+                val t = p.removeFirst()
+                t.pathTo[destination] = t.copyWithThis(p.toList())
+            }
+        }
+
+        private fun copyWithThis(visitedSpots: Set<Spot>): Set<Spot> {
+            val v = visitedSpots.toMutableSet()
+            v.add(this)
+            return v
+        }
+
+        private fun copyWithThis(visitedSpots: List<Spot>): List<Spot> {
+            val v = visitedSpots.toMutableList()
+            v.add(0, this)
+            return v
         }
 
         private fun enterableNeighbours() = neighbours().filter { s -> canEnter(s) }
@@ -68,13 +83,15 @@ object DayTwelve {
         }
 
         override fun hashCode(): Int = 31 * (31 * elevation.hashCode() + x) + y
+
+        override fun toString(): String = "Spot(elevation=$elevation, x=$x, y=$y)"
     }
 
     class Map(input: String) {
         private val map = input.trim().split('\n')
             .mapIndexed { x, l -> l.toCharArray().mapIndexed { y, c -> Spot(c, x, y, this) } }
 
-        fun getSpots() = map.flatten()
+        private fun getSpots() = map.flatten()
 
         fun getSpot(x: Int, y: Int): Spot? {
             return map.getOrNull(x)?.getOrNull(y)
@@ -86,7 +103,9 @@ object DayTwelve {
         fun getSteps() = getStart().stepsTo(getGoal())
         fun findBestLowLandSteps(): Int {
             val goal = getGoal()
-            return getSpots().filter { s -> s.elevation() == 'a' }.minOf { s -> s.stepsTo(goal) }
+            val spot = getSpots().filter { s -> s.elevation() == 'a' }.minBy { s -> s.stepsTo(goal) }
+            println(spot)
+            return spot.stepsTo(goal)
         }
     }
 }
@@ -94,7 +113,6 @@ object DayTwelve {
 fun main() {
     val input = DayTwelve::class.java.getResourceAsStream("input-12.txt")?.bufferedReader()?.readText() ?: return
     val map = DayTwelve.Map(input)
-    // map.markGoal()
     println("Steps to goal: " + map.getSteps())
     println("Steps from best 'a': " + map.findBestLowLandSteps())
 }
