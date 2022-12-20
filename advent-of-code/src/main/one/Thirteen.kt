@@ -13,8 +13,8 @@ object DayThirteen {
                 valueAsInt = 0
                 isInt = false
             } else {
-                valueAsList = emptyList()
                 valueAsInt = input.toInt()
+                valueAsList = listOf(this)
                 isInt = true
             }
         }
@@ -32,60 +32,54 @@ object DayThirteen {
                 }
             }
             try {
-                return i.split(',')
-                    .map { v -> PacketValue(injectList(v, lists)) }
+                return i.split(',').map { v -> PacketValue(injectList(v, lists)) }
             } catch (e: IllegalArgumentException) {
                 throw IllegalArgumentException("Could not parse input $input", e)
             }
         }
 
         private fun injectList(input: String, lists: List<String>): String {
-            val matches = "\\$(\\d+)".toRegex().find(input) ?: return input
-            val (listIndex) = matches.destructured
-            return "[" + injectList(lists[listIndex.toInt()], lists) + "]"
+            val rx = "\\$(\\d+)".toRegex()
+            return input.replace(rx) { matches ->
+                val (listIndex) = matches.destructured
+                "[" + injectList(lists[listIndex.toInt()], lists) + "]"
+            }
         }
 
-        fun isLessThan(value: PacketValue): Boolean? {
-            if (isInt && value.isInt) {
-                if (valueAsInt < value.valueAsInt) return true
-                if (valueAsInt > value.valueAsInt) return false
-                return null
-            }
-            if (!isInt && !value.isInt) return listIsLessThan(valueAsList, value.valueAsList)
-            if (isInt) return listIsLessThan(listOf(this), value.valueAsList)
-            return listIsLessThan(this.valueAsList, listOf(value))
+        operator fun compareTo(other: PacketValue): Int {
+            if (isInt && other.isInt) return valueAsInt.compareTo(other.valueAsInt)
+            return compareListTo(valueAsList, other.valueAsList)
         }
 
-        private fun listIsLessThan(first: List<PacketValue>, second: List<PacketValue>): Boolean {
-            for ((index, value) in first.withIndex()) {
-                if (index > second.lastIndex) return false
-                val isLessThan = value.isLessThan(second[index])
-                if (isLessThan != null) return isLessThan
+        private companion object {
+            private fun compareListTo(first: List<PacketValue>, second: List<PacketValue>): Int {
+                for ((index, value) in first.withIndex()) {
+                    if (index > second.lastIndex) return 1
+                    val isLessThan = value.compareTo(second[index])
+                    if (isLessThan != 0) return isLessThan
+                }
+                return first.size.compareTo(second.size)
             }
-            return second.size >= first.size
         }
     }
 
     class Packet(input: String) {
         private val value: PacketValue = PacketValue(input)
 
-        fun isLessThan(other: Packet) = value.isLessThan(other.value) != false
+        operator fun compareTo(other: Packet) = value.compareTo(other.value)
     }
 
     class PacketPair(input: String) {
-        private val pair = input.trim().split('\n')
-            .map { l -> Packet(l) }
-            .zipWithNext()
-            .single()
+        private val pair = input.trim().split('\n').map { l -> Packet(l) }.zipWithNext().single()
 
-        val isValid = pair.first.isLessThan(pair.second)
+        val isValid = pair.first <= pair.second
     }
 
     class Signal(input: String) {
-        private val packets = input.trim().split("\n\n")
-            .map { i -> PacketPair(i) }
+        private val packets = input.trim().split("\n\n").map { i -> PacketPair(i) }
 
-        fun validPacketsIndexes() = packets.mapIndexed { index, packetPair -> if(packetPair.isValid) index + 1 else 0 }.filter { i -> i > 0 }
+        fun validPacketsIndexes() = packets.mapIndexed { index, packetPair -> if (packetPair.isValid) index + 1 else 0 }
+            .filter { i -> i > 0 }
 
         fun validPacketsSum() = validPacketsIndexes().sum()
     }
@@ -96,3 +90,5 @@ fun main() {
     val signal = DayThirteen.Signal(input)
     println("Sum of valid packets: " + signal.validPacketsSum())
 }
+
+// 6208 - too high
