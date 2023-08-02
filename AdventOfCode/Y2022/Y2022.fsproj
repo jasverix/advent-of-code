@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net7.0</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Content Include="Inputs\input-01.txt" />
+        <Content Include="Inputs\input-02.txt" />
+        <Content Include="Inputs\input-03.txt" />
+        <Content Include="Inputs\input-04.txt" />
+        <Content Include="Inputs\input-05.txt" />
+        <Content Include="Inputs\input-06.txt" />
+        <Content Include="Inputs\input-07.txt" />
+        <Content Include="Inputs\input-08.txt" />
+        <Content Include="Inputs\input-09.txt" />
+        <Content Include="Inputs\input-10.txt" />
+        <Content Include="Inputs\input-11.txt" />
+        <Content Include="Inputs\input-12.txt" />
+        <Content Include="Inputs\input-13.txt" />
+        <Compile Include="Utils.fs" />
+        <Compile Include="DayOne.fs" />
+        <Compile Include="DayTwo.fs" />
+        <Compile Include="DayThree.fs" />
+        <Compile Include="Program.fs" />
+    </ItemGroup>
+
+</Project>
