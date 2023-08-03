@@ -30,13 +30,13 @@ let private _toRacksack (first, second) =
 let toRacksack input : Racksack =
     input |> Utils.trim |> splitStringInHalf |> _toRacksack
 
-let getDuplicateItemsOfRacksack (first: Compartment, second: Compartment) = first |> Seq.filter (second.Contains)
+let getDuplicateItemsOfRacksack (first: Compartment, second: Compartment) = Set.intersect first second
 
 let toRacksacks input =
     input |> Utils.trim |> Utils.split "\n" |> Seq.map toRacksack
 
 let getDuplicateItemsOfRacksacks racksacks =
-    racksacks |> Seq.map getDuplicateItemsOfRacksack |> Seq.concat
+    racksacks |> Seq.collect getDuplicateItemsOfRacksack
 
 let totalPriority items =
     items |> Seq.map itemPriority |> Seq.sum
@@ -44,8 +44,27 @@ let totalPriority items =
 let getTotalPriorityByInput input =
     input |> toRacksacks |> getDuplicateItemsOfRacksacks |> totalPriority
 
-let main() =
+let getItems (first: Compartment, second: Compartment) = first |> Seq.append second
+
+let commonItems (racksacks: seq<Racksack>) =
+    let items: seq<Item> = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+    racksacks
+    |> Seq.fold (fun commonItems racksack ->
+        commonItems |> Seq.filter(fun item ->
+            racksack
+            |> getItems
+            |> Seq.contains item
+        )
+    ) items
+    
+let getCommonItemsOfGroups racksacks =
+    racksacks
+    |> Seq.chunkBySize 3
+    |> Seq.collect commonItems
+
+let main () =
     let input = Utils.readInputFile "03"
     let racksacks = input |> toRacksacks
-    
+
     racksacks |> getDuplicateItemsOfRacksacks |> totalPriority |> printfn "%d"
+    racksacks |> getCommonItemsOfGroups |> totalPriority |> printfn "%d"
