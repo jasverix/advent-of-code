@@ -59,8 +59,10 @@ let moveItems items fromStack toStack crateMover (storage: Storage) : Storage =
     storage |> takeFromIndex fromStack items |> insertIntoIndex toStack crateMover
 
 let handleMoveCommand command crateMover storage =
-    let groups = command |> Utils.regexMatch "move (\d+) from (\d+) to (\d+)"
-    storage |> moveItems (int groups[1]) (int groups[2]) (int groups[3]) crateMover
+    match command with
+    | Utils.Regex "move (\d+) from (\d+) to (\d+)" [ Utils.Int items; Utils.Int fromStack; Utils.Int toStack ] ->
+        moveItems items fromStack toStack crateMover storage
+    | s -> failwith $"unknown command {s}"
 
 let handleMoveCommands commands crateMover storage =
     commands
@@ -89,5 +91,14 @@ let main () =
     let printTopCrates topCrates =
         topCrates |> Seq.map (fun c -> c.ToString()) |> String.concat ""
 
-    input |> getFinalStorage crateMover9000 |> getTopCrates |> printTopCrates |> printfn "%s"
-    input |> getFinalStorage crateMover9001 |> getTopCrates |> printTopCrates |> printfn "%s"
+    input
+    |> getFinalStorage crateMover9000
+    |> getTopCrates
+    |> printTopCrates
+    |> printfn "%s"
+
+    input
+    |> getFinalStorage crateMover9001
+    |> getTopCrates
+    |> printTopCrates
+    |> printfn "%s"
