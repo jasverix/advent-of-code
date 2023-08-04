@@ -1,14 +1,12 @@
 module Y2022.DayFour
 
-open System.Text.RegularExpressions
-
 type Elf = Set<int>
 type AssignmentPair = Elf * Elf
 
-let toRange (sections: string) : Elf =
-    let capture = Regex.Match(sections, "(\d+)-(\d+)")
-    let fromValue = int capture.Groups[1].Value
-    let toValue = int capture.Groups[2].Value
+let toRange sections : Elf =
+    let capture = sections |> Utils.regexMatch "(\d+)-(\d+)"
+    let fromValue = int capture[1]
+    let toValue = int capture[2]
     Set<int>([ fromValue..toValue ])
 
 let toAssignmentPair input : AssignmentPair =
