@@ -10,11 +10,17 @@ let readInputFile input =
 let trim (input: string) = input.Trim()
 let split (splitBy: string) (input: string) = input.Split(splitBy)
 
-let unshift (arr: array<'T>) : 'T * array<'T> =
+let unshiftItem (arr: array<'T>) : 'T * array<'T> =
     if arr |> Array.isEmpty then
         (Unchecked.defaultof<'T>, Array.empty)
     else
         (arr[0], arr |> Array.tail)
+
+let popItem (arr: array<'T>) : 'T * array<'T> =
+    if arr |> Array.isEmpty then
+        (Unchecked.defaultof<'T>, Array.empty)
+    else
+        (arr |> Array.last, arr |> Array.take (arr.Length - 1))
 
 let pop items (stack: array<'T>) : array<'T> * array<'T> =
     let length = stack |> Array.length
@@ -44,10 +50,15 @@ let regexMatch (regex: string) (input: string) =
     else
         Map.empty
 
-let (|Regex|_|) pattern input = 
+let (|Regex|_|) pattern input =
     let m = Regex.Match(input, pattern)
-    if m.Success then Some(List.tail [ for g in m.Groups -> g.Value])
-    else None
 
-let (|Int|_|) (str:string) = match Int32.TryParse str with true, value -> Some value | _ -> None
+    if m.Success then
+        Some(List.tail [ for g in m.Groups -> g.Value ])
+    else
+        None
 
+let (|Int|_|) (str: string) =
+    match Int32.TryParse str with
+    | true, value -> Some value
+    | _ -> None

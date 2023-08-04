@@ -5,30 +5,10 @@ open Y2022.DaySeven
 
 [<Test>]
 let ``Unshift array`` () =
-    let res = [| "one"; "two"; "tree" |] |> Y2022.Utils.unshift
+    let res = [| "one"; "two"; "tree" |] |> Y2022.Utils.unshiftItem
 
     Assert.AreEqual("one", res |> fst)
     Assert.AreEqual("two tree", res |> snd |> String.concat " ")
-
-[<Test>]
-let ``Create folder structure`` () =
-    let root = createFolder "/" |> addFolderForPath "etc/php"
-    Assert.IsTrue(root.Folders.ContainsKey("etc"))
-    Assert.IsFalse(root.Folders.ContainsKey("etc/php"))
-    Assert.IsTrue((root |> getChildFolderByPath "etc/php").IsSome)
-    Assert.IsTrue((root |> getChildFolderByPath "etc/yeet").IsNone)
-
-[<Test>]
-let ``Create folder structure with files`` () =
-    let root =
-        createFolder "/"
-        |> addFolderForPath "etc/php"
-        |> addFileOnPath "etc" (createFile "hosts" 123)
-
-    Assert.IsTrue(root.Folders.ContainsKey("etc"))
-    Assert.IsFalse(root.Folders.ContainsKey("etc/php"))
-    Assert.IsTrue(root.Folders["etc"].Files.ContainsKey("hosts"))
-    Assert.AreEqual(123, root.Folders["etc"].Files["hosts"].Size)
     
 [<Test>]
 let ``Navigate the terminal``() =
@@ -38,7 +18,7 @@ let ``Navigate the terminal``() =
                     |> cd "php"
                     |> cd ".."
                     |> cd "nginx"
-    Assert.AreEqual("/etc/nginx/", terminal.CD)
+    Assert.AreEqual("/etc/nginx/", terminal.Path)
     Assert.IsTrue(terminal.Root.Folders.ContainsKey("etc"))
     Assert.IsTrue(terminal.Root.Folders["etc"].Folders.ContainsKey("nginx"))
     Assert.IsFalse(terminal.Root.Folders.ContainsKey("yadda"))
@@ -70,7 +50,17 @@ $ ls
 
 let ``Get folder size``() =
     let terminal = initiateTerminal() |> handleConsole testInput
-    Assert.AreEqual(94853, terminal.Root |> getChildFolderByPath "a" |> Option.get |> getFolderSize)
+    Assert.AreEqual(94853, terminal.Root |> getChildFolder "a" |> getFolderSize)
+    Assert.AreEqual(584, terminal.Root
+                           |> getChildFolder "a"
+                           |> getChildFolder "e"
+                           |> getFolderSize)
+     
+    Assert.AreEqual(24933642, terminal.Root
+                           |> getChildFolder "d"
+                           |> getFolderSize)
+    
+    Assert.AreEqual(48381165, terminal.Root |> getFolderSize)
     
 let ``Get all folders``() =
     let terminal = initiateTerminal() |> handleConsole testInput
@@ -79,4 +69,4 @@ let ``Get all folders``() =
 
 let ``Sum biggest folder``() =
     let terminal = initiateTerminal() |> handleConsole testInput
-    Assert.AreEqual(95437, terminal.Root |> getAllFolders |> sumFoldersBiggerThan 10000)
+    Assert.AreEqual(95437, terminal.Root |> getAllFolders |> sumFoldersLessThan 10000)
