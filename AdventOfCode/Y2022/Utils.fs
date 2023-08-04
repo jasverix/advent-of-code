@@ -10,6 +10,20 @@ let readInputFile input =
 let trim (input: string) = input.Trim()
 let split (splitBy: string) (input: string) = input.Split(splitBy)
 
+let unshift (arr: array<'T>) : 'T * array<'T> =
+    if arr |> Array.isEmpty then
+        (Unchecked.defaultof<'T>, Array.empty)
+    else
+        (arr[0], arr |> Array.tail)
+
+let pop items (stack: array<'T>) : array<'T> * array<'T> =
+    let length = stack |> Array.length
+
+    if length < items then
+        (stack, Array.empty)
+    else
+        (stack |> Array.skip (length - items), stack |> Array.take (length - items))
+
 let splitAt (splitBy: string) (input: string) : string * string =
     let index = input.IndexOf(splitBy)
 

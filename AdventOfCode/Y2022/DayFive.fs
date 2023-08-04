@@ -1,5 +1,7 @@
 module Y2022.DayFive
 
+open Utils
+
 type Crate = char
 type Stack = Crate array
 type Storage = Map<int, Stack>
@@ -11,7 +13,7 @@ let private getIndexIndex (indexLine: string) =
     |> Seq.map (fun (index, stackIndexChar) -> (index, int (stackIndexChar.ToString())))
 
 let private storageAndIndexLine storageInput =
-    let lines = storageInput |> Utils.split "\n"
+    let lines = storageInput |> split "\n"
     (lines |> Array.take (lines.Length - 1), lines |> Array.last)
 
 let private getStackLine (index: seq<int * int>) (line: string) =
@@ -35,14 +37,6 @@ let private getStackLines (lines, indexLine) =
 let getStorage storageInput : Storage =
     storageInput |> storageAndIndexLine |> getStackLines
 
-let pop items (stack: Stack) : Stack * Stack =
-    let length = stack |> Array.length
-
-    if length < items then
-        (stack, Array.empty)
-    else
-        (stack |> Array.skip (length - items), stack |> Array.take (length - items))
-
 let private handleTakeFromIndex index (storage: Storage) (popped, remaining) = (popped, storage.Add(index, remaining))
 
 let private takeFromIndex index items (storage: Storage) : Stack * Storage =
@@ -60,21 +54,21 @@ let moveItems items fromStack toStack crateMover (storage: Storage) : Storage =
 
 let handleMoveCommand command crateMover storage =
     match command with
-    | Utils.Regex "move (\d+) from (\d+) to (\d+)" [ Utils.Int items; Utils.Int fromStack; Utils.Int toStack ] ->
+    | Regex "move (\d+) from (\d+) to (\d+)" [ Int items; Int fromStack; Int toStack ] ->
         moveItems items fromStack toStack crateMover storage
     | s -> failwith $"unknown command {s}"
 
 let handleMoveCommands commands crateMover storage =
     commands
-    |> Utils.trim
-    |> Utils.split "\n"
+    |> trim
+    |> split "\n"
     |> Seq.fold (fun storage command -> storage |> handleMoveCommand command crateMover) storage
 
 let private _getFinalStorage crateMover (storageInput, commandInput) =
     storageInput |> getStorage |> handleMoveCommands commandInput crateMover
 
 let getFinalStorage crateMover input =
-    input |> Utils.splitAt "\n\n" |> _getFinalStorage crateMover
+    input |> splitAt "\n\n" |> _getFinalStorage crateMover
 
 let private _getUsedIndexes (storage: Storage) = storage |> Map.keys
 
@@ -86,7 +80,7 @@ let getTopCrates storage =
     |> Seq.map (fun index -> storage |> getTopCrate index)
 
 let main () =
-    let input = Utils.readInputFile "05"
+    let input = readInputFile "05"
 
     let printTopCrates topCrates =
         topCrates |> Seq.map (fun c -> c.ToString()) |> String.concat ""
