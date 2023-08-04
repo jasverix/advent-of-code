@@ -123,17 +123,28 @@ let rec getAllFolders root : seq<Folder> =
     |> Seq.map getAllFolders
     |> Seq.concat
     |> Seq.append [ root ]
+    
+let getFolderSizes folders = folders |> Seq.map getFolderSize
 
-let sumFoldersLessThan amount folders =
-    folders
-    |> Seq.map getFolderSize
-    |> Seq.filter (fun size -> size < amount)
-    |> Seq.sum
+let sumFoldersLessThan amount folderSizes =
+    folderSizes
+    |> List.filter (fun size -> size < amount)
+    |> List.sum
 
 let initiateTerminal () = { Root = createFolder "/"; Path = "/" }
 
 let main () =
     let input = readInputFile "07"
     let terminal = initiateTerminal () |> handleConsole input
-
-    terminal.Root |> getAllFolders |> sumFoldersLessThan 100000 |> printfn "%d"
+    let folderSizes = terminal.Root |> getAllFolders |> getFolderSizes |> Seq.toList
+    
+    folderSizes |> sumFoldersLessThan 100000 |> printfn "%d"
+    
+    let totalSizeAvailable = 70000000
+    let free = totalSizeAvailable - (folderSizes |> List.max)
+    let neededSize = 30000000
+    
+    folderSizes
+    |> Seq.filter (fun size -> (free + size) >= neededSize)
+    |> Seq.min
+    |> printfn "%d"

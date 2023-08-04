@@ -69,4 +69,4 @@ let ``Get all folders``() =
 
 let ``Sum biggest folder``() =
     let terminal = initiateTerminal() |> handleConsole testInput
-    Assert.AreEqual(95437, terminal.Root |> getAllFolders |> sumFoldersLessThan 10000)
+    Assert.AreEqual(95437, terminal.Root |> getAllFolders |> getFolderSizes |> sumFoldersLessThan 10000)
