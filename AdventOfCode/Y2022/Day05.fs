@@ -1,4 +1,4 @@
-module Y2022.DayFive
+module Y2022.Day05
 
 open Utils
 

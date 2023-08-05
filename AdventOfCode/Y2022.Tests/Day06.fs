@@ -1,7 +1,7 @@
-module Y2022.Tests.DaySix
+module Y2022.Tests.Day06
 
 open NUnit.Framework
-open Y2022.DaySix
+open Y2022.Day06
 
 [<Test>]
 let ``Chars are different``() =

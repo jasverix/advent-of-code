@@ -1,4 +1,4 @@
-module Y2022.DayThree
+module Y2022.Day03
 
 type Item = char
 type Compartment = Set<Item>

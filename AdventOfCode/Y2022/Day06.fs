@@ -1,4 +1,4 @@
-module Y2022.DaySix
+module Y2022.Day06
 
 let charsAreDifferent (input: string) =
     input.Length = (Set<char>(input) |> Seq.length)

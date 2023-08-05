@@ -1,4 +1,4 @@
-module Y2022.DayFour
+module Y2022.Day04
 
 type Elf = Set<int>
 type AssignmentPair = Elf * Elf

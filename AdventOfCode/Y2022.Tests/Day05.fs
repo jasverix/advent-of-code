@@ -1,7 +1,7 @@
-module Y2022.Tests.DayFive
+module Y2022.Tests.Day05
 
 open NUnit.Framework
-open Y2022.DayFive
+open Y2022.Day05
 
 let testInput = "    [D]    
 [N] [C]    

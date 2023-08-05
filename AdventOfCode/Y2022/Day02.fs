@@ -1,4 +1,4 @@
-module Y2022.DayTwo
+module Y2022.Day02
 
 open System.Text.RegularExpressions
 

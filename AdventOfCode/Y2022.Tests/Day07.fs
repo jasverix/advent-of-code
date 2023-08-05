@@ -1,7 +1,7 @@
-module Y2022.Tests.DaySeven
+module Y2022.Tests.Day07
 
 open NUnit.Framework
-open Y2022.DaySeven
+open Y2022.Day07
 
 [<Test>]
 let ``Unshift array`` () =

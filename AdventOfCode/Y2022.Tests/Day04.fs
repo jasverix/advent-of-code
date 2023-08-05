@@ -1,7 +1,7 @@
-module Y2022.Tests.DayFour
+module Y2022.Tests.Day04
 
 open NUnit.Framework
-open Y2022.DayFour
+open Y2022.Day04
 
 let testInput = "2-4,6-8
 2-3,4-5

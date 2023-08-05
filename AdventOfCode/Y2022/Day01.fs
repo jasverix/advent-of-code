@@ -1,4 +1,4 @@
-﻿module Y2022.DayOne
+﻿module Y2022.Day01
 
 let toElf (input: string) =
     input.Trim().Split("\n") |> Seq.map int |> Seq.sum

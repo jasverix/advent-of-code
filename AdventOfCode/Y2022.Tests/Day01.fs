@@ -1,7 +1,7 @@
-module Y2022.Tests.DayOne
+module Y2022.Tests.Day01
 
 open NUnit.Framework
-open Y2022.DayOne
+open Y2022.Day01
 
 [<Test>]
 let ``Convert some numbers to an elf`` () =

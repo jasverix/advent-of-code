@@ -1,4 +1,4 @@
-module Y2022.DaySeven
+module Y2022.Day07
 
 open Utils
 
@@ -22,12 +22,7 @@ let createFile name size = { Name = name; Size = size }
 let private _plainRootPath (path: string) = path.Trim().TrimStart('/').TrimEnd('/')
 
 let _addFolderTo (folders: Map<string, Folder>) folder = folders.Add(folder.Name, folder)
-
-let _addSomeFileTo (files: Map<string, File>) (file: File option) =
-    if file.IsSome then
-        files.Add(file.Value.Name, file.Value)
-    else
-        files
+let _addFileTo (files: Map<string, File>) (file: File) = files.Add(file.Name, file)
 
 let _getOrCreateFolder name root =
     if root.Folders |> Map.containsKey name then
@@ -38,13 +33,17 @@ let _getOrCreateFolder name root =
 let rec _addFolderOn file root (name: string, path: array<string>) =
     { Name = root.Name
       Files = root.Files
-      Folders = _addFolderTo root.Folders (root |> _getOrCreateFolder name |> _addFolder path file) }
+      Folders =
+        root
+        |> _getOrCreateFolder name
+        |> _addFolderByPath path file
+        |> _addFolderTo root.Folders }
 
-and _addFolder (path: array<string>) (file: File option) root =
+and _addFolderByPath (path: array<string>) (file: File option) root =
     if path |> Array.isEmpty then
         if file.IsSome then
             { Name = root.Name
-              Files = file |> _addSomeFileTo root.Files
+              Files = file.Value |> _addFileTo root.Files
               Folders = root.Folders }
         else
             root
@@ -55,10 +54,10 @@ let addFolder path root =
     if path = "/" then
         root
     else
-        root |> _addFolder (path |> _plainRootPath |> split "/") None
+        root |> _addFolderByPath (path |> _plainRootPath |> split "/") None
 
 let _addFile (fileName: string, path: array<string>) size root =
-    root |> _addFolder path (Some(createFile fileName size))
+    root |> _addFolderByPath path (Some(createFile fileName size))
 
 let addFile path size root =
     _addFile (path |> _plainRootPath |> split "/" |> popItem) size root
@@ -123,13 +122,11 @@ let rec getAllFolders root : seq<Folder> =
     |> Seq.map getAllFolders
     |> Seq.concat
     |> Seq.append [ root ]
-    
+
 let getFolderSizes folders = folders |> Seq.map getFolderSize
 
 let sumFoldersLessThan amount folderSizes =
-    folderSizes
-    |> List.filter (fun size -> size < amount)
-    |> List.sum
+    folderSizes |> Seq.filter (fun size -> size < amount) |> Seq.sum
 
 let initiateTerminal () = { Root = createFolder "/"; Path = "/" }
 
@@ -137,13 +134,13 @@ let main () =
     let input = readInputFile "07"
     let terminal = initiateTerminal () |> handleConsole input
     let folderSizes = terminal.Root |> getAllFolders |> getFolderSizes |> Seq.toList
-    
+
     folderSizes |> sumFoldersLessThan 100000 |> printfn "%d"
-    
+
     let totalSizeAvailable = 70000000
     let free = totalSizeAvailable - (folderSizes |> List.max)
     let neededSize = 30000000
-    
+
     folderSizes
     |> Seq.filter (fun size -> (free + size) >= neededSize)
     |> Seq.min

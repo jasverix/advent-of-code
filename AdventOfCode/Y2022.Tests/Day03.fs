@@ -1,7 +1,7 @@
-module Y2022.Tests.DayThree
+module Y2022.Tests.Day03
 
 open NUnit.Framework
-open Y2022.DayThree
+open Y2022.Day03
 
 let testInput = "vJrwpWtwJgWrhcsFMMfFFhFp
 jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL
