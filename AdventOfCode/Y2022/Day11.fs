@@ -9,7 +9,7 @@ type Test =
       IfTrue: string
       IfFalse: string }
 
-let runMath one operator two: int64 =
+let runMath one operator two : int64 =
     match operator with
     | "+" -> one + two
     | "*" -> one * two
@@ -19,7 +19,7 @@ let handleOperation (old: int64) (operation: Operation) =
     match operation.Replace("old", old.ToString()) with
     | Regex "(\d+)\s+([*+])\s+(\d+)" [ Int64 one; operator; Int64 two ] -> runMath one operator two
     | _ -> 0
-    
+
 let getDivisibleBy test =
     match test with
     | Regex "divisible by (\d+)" [ Int64 value ] -> Some value
@@ -82,19 +82,18 @@ let getMonkeys input =
 
 let getNewItemValue item monkey =
     monkey.Operation |> handleOperation item
-    
+
 let private _getModulo (monkeys: Monkey list) =
     monkeys
     |> Seq.map (fun m -> (getDivisibleBy m.Test.Input) |> Option.get)
     |> Seq.reduce (*)
 
-let reliefBy3 item: int64 = item / 3L
-let noRelief item: int64 = item
+let reliefBy3 item : int64 = item / 3L
+let noRelief item : int64 = item
 
 // the worry level gets too high for an int64 - we need to find a common divisor and use that as modulo
-let reliefByModulo (monkeys: Monkey list) item =
-    item % (monkeys |> _getModulo)
-    
+let reliefByModulo (monkeys: Monkey list) item = item % (monkeys |> _getModulo)
+
 
 let inspectItem item (relief: int64 -> int64) monkey =
     let newItemValue = monkey |> getNewItemValue item |> relief
@@ -109,17 +108,14 @@ let inspectItems relief monkey =
     |> Map.ofSeq
 
 let withItemsInspected monkey =
-    { Items = List.empty
-      Operation = monkey.Operation
-      Test = monkey.Test
-      InspectedItems = monkey.InspectedItems + int64 monkey.Items.Length }
+    { monkey with
+        Items = List.empty
+        InspectedItems = monkey.InspectedItems + int64 monkey.Items.Length }
 
 let receiveItems index (throws: Map<int, int64 seq>) monkey =
     if throws |> Map.containsKey index then
-        { Items = Seq.append monkey.Items throws[index] |> List.ofSeq
-          Operation = monkey.Operation
-          Test = monkey.Test
-          InspectedItems = monkey.InspectedItems }
+        { monkey with
+            Items = Seq.append monkey.Items throws[index] |> List.ofSeq }
     else
         monkey
 
@@ -147,7 +143,11 @@ let getMonkeyBusinessLevel monkeys =
     |> Seq.map (fun m -> m.InspectedItems)
     |> Seq.reduce (*)
 
-let main() =
+let main () =
     let monkeys = readInputFile "11" |> getMonkeys
     monkeys |> rounds 20 reliefBy3 |> getMonkeyBusinessLevel |> printfn "%d"
-    monkeys |> rounds 10000 (reliefByModulo monkeys) |> getMonkeyBusinessLevel |> printfn "%d"
+
+    monkeys
+    |> rounds 10000 (reliefByModulo monkeys)
+    |> getMonkeyBusinessLevel
+    |> printfn "%d"

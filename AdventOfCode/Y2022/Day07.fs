@@ -31,20 +31,18 @@ let _getOrCreateFolder name root =
         createFolder name
 
 let rec _addFolderOn file root (name: string, path: array<string>) =
-    { Name = root.Name
-      Files = root.Files
-      Folders =
-        root
-        |> _getOrCreateFolder name
-        |> _addFolderByPath path file
-        |> _addFolderTo root.Folders }
+    { root with
+        Folders =
+            root
+            |> _getOrCreateFolder name
+            |> _addFolderByPath path file
+            |> _addFolderTo root.Folders }
 
 and _addFolderByPath (path: array<string>) (file: File option) root =
     if path |> Array.isEmpty then
         if file.IsSome then
-            { Name = root.Name
-              Files = file.Value |> _addFileTo root.Files
-              Folders = root.Folders }
+            { root with
+                Files = file.Value |> _addFileTo root.Files }
         else
             root
     else
