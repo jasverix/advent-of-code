@@ -52,7 +52,7 @@ let spriteIsAtPositionForCycle cycle cycles colIndex =
     cycles |> getCycle cycle |> getXDuring |> spriteIsAtPosition colIndex
 
 let getCycleChar cycle cycles colIndex =
-    if spriteIsAtPositionForCycle cycle cycles colIndex then '#' else '.'
+    if spriteIsAtPositionForCycle cycle cycles colIndex then '█' else ' '
     
 let getCRTRow cycles rowIndex =
     [1..40] |> Seq.map(fun colIndex -> getCycleChar ((rowIndex * 40) + colIndex) cycles (colIndex - 1)) |> Str.ofSeq

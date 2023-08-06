@@ -62,3 +62,8 @@ let (|Int|_|) (str: string) =
     match Int32.TryParse str with
     | true, value -> Some value
     | _ -> None
+
+let (|Int64|_|) (str: string) =
+    match Int64.TryParse str with
+    | true, value -> Some value
+    | _ -> None
