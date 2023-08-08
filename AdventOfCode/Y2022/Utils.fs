@@ -38,17 +38,28 @@ let splitAt (splitBy: string) (input: string) : string * string =
     else
         (input[0 .. (index - 1)], input[(index + splitBy.Length) ..])
 
+let private _regexGroupsToMap (groups: GroupCollection) =
+    seq {
+        for index in 0 .. groups.Count do
+            (index, groups[index].Value)
+    }
+    |> Map.ofSeq
+
 let regexMatch (regex: string) (input: string) =
     let capture = Regex.Match(input, regex)
 
     if capture.Success then
-        seq {
-            for index in 0 .. capture.Groups.Count do
-                (index, capture.Groups[index].Value)
-        }
-        |> Map.ofSeq
+        capture.Groups |> _regexGroupsToMap
     else
         Map.empty
+
+let regexMatches pattern input =
+    let matches = Regex.Matches(input, pattern)
+    matches |> Seq.map (fun m -> m.Groups |> _regexGroupsToMap)
+    |> Seq.collect Map.toList
+    |> Seq.groupBy fst
+    |> Seq.map(fun (key, group) -> key, group |> Seq.map snd)
+    |> Map.ofSeq
 
 let (|Regex|_|) pattern input =
     let m = Regex.Match(input, pattern)
