@@ -110,12 +110,30 @@ let getNextSteps map (paths: Path list) target =
     |> List.map (fun path -> nextStepsOrSelf path (getSpot path.Head map).Value target)
     |> List.concat
 
+let getShortestPath (paths: Path list) (pos: Position) =
+    let findIndex (index: int option) =
+        match index with
+        | Some index -> index
+        | None -> -1
+
+    let reverse index = (paths.Length - index)
+
+    paths
+    |> List.minBy (fun path -> path |> List.tryFindIndexBack (fun p -> p = pos) |> findIndex |> reverse)
+
+let onlyShortestPaths (paths: Path list) =
+    paths
+    |> List.map List.head
+    |> List.map (getShortestPath paths)
+    |> Set.ofList
+    |> Set.toList
+
 let allPathsToTarget target spot =
     let mutable paths = getNextSteps spot.Map [ [ spot.Pos ] ] target
     let withTarget p = p |> List.contains target
 
     while paths.Length <> (paths |> List.filter withTarget).Length do
-        paths <- getNextSteps spot.Map paths target
+        paths <- getNextSteps spot.Map paths target |> onlyShortestPaths
 
     paths |> List.filter (fun p -> p |> List.contains target) |> List.map List.tail
 
