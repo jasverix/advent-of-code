@@ -153,8 +153,8 @@ let testInput = "498,4 -> 498,6 -> 496,6
 "
 
 let main() =
-    // let rockMap = readInputFile "14" |> toRockMap
-    let rockMap = testInput |> toRockMap
+    let rockMap = readInputFile "14" |> toRockMap
+    // let rockMap = testInput |> toRockMap
     let sandMap = run printMap rockMap [ (500, 0) ]
     
     sandMap |> List.length |> printfn "Part 1: %d"
