@@ -44,7 +44,10 @@ let toCoordinates (vectors: Vectors) =
                 newPositions @ (lastPosition |> coordinatesBetween vector))
         []
 
-let toRockMap input : Set<Coordinate> =
+type RockMap = Set<Coordinate>
+type SandMap = Set<Coordinate> * Set<Coordinate>
+
+let toRockMap input : RockMap =
     input
     |> Str.trim
     |> Str.split "\n"
@@ -65,8 +68,9 @@ let step dir (x, y) =
     | DownLeft -> (x - 1, y + 1)
     | DownRight -> (x + 1, y + 1)
 
-let canGo (rockMap: Set<Coordinate>) (sandMap: Coordinate list) target =
-    (target |> rockMap.Contains |> not) && (sandMap |> List.contains target |> not)
+let canGo (rockMap: RockMap) ((sandAtRest, _): SandMap) target =
+    (rockMap |> Set.contains target |> not)
+    && (sandAtRest |> Set.contains target |> not)
 
 let stepSand rockMap sandMap sandPosition : bool * Coordinate =
     [ Down; DownLeft; DownRight ]
@@ -78,83 +82,91 @@ let stepSand rockMap sandMap sandPosition : bool * Coordinate =
         | None -> (false, sandPosition)
 
 let canAddNewSand rockMap sandMap =
-    (canGo rockMap sandMap (500, 0)) &&
-    (canGo rockMap sandMap (501, 1)) &&
-    (canGo rockMap sandMap (503, 1)) &&
-    (canGo rockMap sandMap (500, 1)) &&
-    (canGo rockMap sandMap (500, 2))
+    (canGo rockMap sandMap (500, 0))
+    && (canGo rockMap sandMap (501, 1))
+    && (canGo rockMap sandMap (503, 1))
+    && (canGo rockMap sandMap (500, 1))
+    && (canGo rockMap sandMap (500, 2))
 
-let tick rockMap (sandMap: Coordinate list) : Coordinate list =
-    let anyMoving, newSandMap = sandMap |> List.map (stepSand rockMap sandMap) |> List.unzip
-    if anyMoving |> List.contains true |> not || (newSandMap |> canAddNewSand rockMap) then
-        (500, 0) :: newSandMap
+let handleMovedSands sandAtRest (movedSands: (bool * Coordinate) seq) =
+    movedSands
+    |> Seq.fold
+        (fun ((sandAtRest, movingSand): SandMap) (moving, pos) ->
+            if moving then
+                (sandAtRest, (movingSand |> Set.add pos))
+            else
+                (sandAtRest |> Set.add pos, movingSand))
+        (sandAtRest, Set.empty)
+
+let tick i rockMap sandMap : SandMap =
+    let sandAtRest, movingSand = sandMap
+
+    let newSandAtRest, newMovingSands =
+        movingSand |> Seq.map (stepSand rockMap sandMap) |> handleMovedSands sandAtRest
+
+    if newMovingSands |> Seq.isEmpty || ((i % 2) = 0) then
+        (newSandAtRest, newMovingSands |> Set.add (500, 0))
     else
-        newSandMap
+        newSandAtRest, newMovingSands
 
-let getBottomRock (rockMap: Set<Coordinate>) =
+let getBottomRock (rockMap: RockMap) =
     rockMap |> Set.map snd |> Set.maxElement
-    
-let getLeftRock (rockMap: Set<Coordinate>) =
+
+let getLeftRock (rockMap: RockMap) =
     rockMap |> Set.map fst |> Set.minElement
 
-let getRightRock (rockMap: Set<Coordinate>) =
+let getRightRock (rockMap: RockMap) =
     rockMap |> Set.map fst |> Set.maxElement
-    
-let getPositionChar rockMap sandMap position =
-    if rockMap |> Set.contains position then
-        '#'
-    elif sandMap |> List.contains position then
-        'o'
-    else
-        '.'
-    
-let stringMap rockMap sandMap =
+
+let getPositionChar rockMap ((sandAtRest, movingSands): SandMap) position =
+    if rockMap |> Set.contains position then '#'
+    elif sandAtRest |> Set.contains position then 'o'
+    elif movingSands |> Seq.contains position then 'o'
+    else '.'
+
+let stringMap (rockMap: RockMap) (sandMap: SandMap) =
     let x1 = (rockMap |> getLeftRock) - 1
     let x2 = (rockMap |> getRightRock) + 1
     let y1 = 0
     let y2 = (rockMap |> getBottomRock) + 1
-    y1 |> toRange y2
-    |> List.map (fun y -> x1 |> toRange x2 |> List.map (fun x -> (x, y) |> getPositionChar rockMap sandMap))
+
+    y1
+    |> toRange y2
+    |> List.map (fun y ->
+        x1
+        |> toRange x2
+        |> List.map (fun x -> (x, y) |> getPositionChar rockMap sandMap))
     |> List.map (fun row -> row |> List.map string |> String.concat "")
     |> String.concat "\n"
-    
+
 let printMap rockMap sandMap =
-    stringMap rockMap sandMap |> printf "%s\n"
+    stringMap rockMap sandMap |> printf "%s\n\n"
     System.Console.SetCursorPosition(0, System.Console.CursorTop)
     System.Console.Clear()
 
 let sandInAbyss rockMap (sandPosition: Coordinate) =
     sandPosition |> snd |> (fun y -> y > (rockMap |> getBottomRock))
 
-let anySandInAbyss rockMap sandMap =
-    sandMap |> List.exists (sandInAbyss rockMap)
-    
-let tickToEnd rockMap (sandMap: Coordinate list) : bool * Coordinate list =
-    let anyMoving, newSandMap = sandMap |> List.map (stepSand rockMap sandMap) |> List.unzip
-    (anyMoving |> List.contains true, newSandMap |> List.filter (fun s -> s |> sandInAbyss rockMap |> not))
-        
-let rec runEnd print rockMap sandMap =
-    print rockMap sandMap
-    let _, newSandMap = (tickToEnd rockMap sandMap)
-    if sandMap <> newSandMap then
-        runEnd print rockMap newSandMap
-    else
-        newSandMap
+let anySandInAbyss rockMap (_ ,sandMap) =
+    sandMap |> Seq.exists (sandInAbyss rockMap)
 
-let rec run print rockMap sandMap =
+let rec run i print (rockMap: RockMap) (sandMap: SandMap): SandMap =
     print rockMap sandMap
+
     if anySandInAbyss rockMap sandMap then
-        runEnd print rockMap (sandMap |> List.filter (fun s -> s |> sandInAbyss rockMap |> not))
+        let sandAtRest, _ = sandMap
+        (sandAtRest, Set.empty)
     else
-        run print rockMap (tick rockMap sandMap)
+        run (i + 1) print rockMap (tick i rockMap sandMap)
 
-let testInput = "498,4 -> 498,6 -> 496,6
+let testInput =
+    "498,4 -> 498,6 -> 496,6
 503,4 -> 502,4 -> 502,9 -> 494,9
 "
 
-let main() =
+let main () =
     let rockMap = readInputFile "14" |> toRockMap
     // let rockMap = testInput |> toRockMap
-    let sandMap = run printMap rockMap [ (500, 0) ]
-    
-    sandMap |> List.length |> printfn "Part 1: %d"
+    let sandAtRest, _ = run 0 printMap rockMap (Set.empty, Set.empty)
+
+    sandAtRest |> Set.count |> printfn "Part 1: %d"
