@@ -7,3 +7,6 @@ let substring (start: int) (length: int) (input: string) =
         input.Substring(start, (input.Length - 1) + length)
     else
         input.Substring(start, length)
+
+let trim (input: string) = input.Trim()
+let split (splitBy: string) (input: string) = input.Split(splitBy)
