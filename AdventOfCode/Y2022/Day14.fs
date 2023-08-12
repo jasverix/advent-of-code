@@ -173,6 +173,6 @@ let main () =
     // let rockMap = testInput |> toRockMap true
 
     let sandMap =
-        getResult (printMap (rockMap.Rocks |> getLeftCoordinate) (rockMap.Rocks |> getRightCoordinate)) rockMap
+        getResult (fun _ _ -> ()) rockMap
 
     sandMap |> Set.count |> printfn "Part 1: %d"
