@@ -95,58 +95,24 @@ let canGo (rockMap: RockMap) ((sandAtRest, _): SandMap) target =
     (rockMap.Rocks |> Set.contains target |> not)
     && (sandAtRest |> Set.contains target |> not)
     && match rockMap.FloorPosition with
-        | Some floor -> (target |> snd) < floor
-        | None -> true
+       | Some floor -> (target |> snd) < floor
+       | None -> true
 
-let stepSand rockMap sandMap sandPosition : bool * Coordinate =
+let nextSandPosition rockMap sandMap sandPosition =
     [ Down; DownLeft; DownRight ]
     |> Seq.map (fun dir -> sandPosition |> step dir)
     |> Seq.tryFind (canGo rockMap sandMap)
-    |> fun newPos ->
-        match newPos with
-        | Some pos -> (true, pos)
-        | None -> (false, sandPosition)
-
-let canAddNewSand rockMap sandMap =
-    (canGo rockMap sandMap (500, 0))
-    && (canGo rockMap sandMap (501, 1))
-    && (canGo rockMap sandMap (503, 1))
-    && (canGo rockMap sandMap (500, 1))
-    && (canGo rockMap sandMap (500, 2))
-
-let handleMovedSands sandAtRest (movedSands: (bool * Coordinate) seq) =
-    movedSands
-    |> Seq.fold
-        (fun ((sandAtRest, movingSand): SandMap) (moving, pos) ->
-            if moving then
-                (sandAtRest, (movingSand |> Set.add pos))
-            else
-                (sandAtRest |> Set.add pos, movingSand))
-        (sandAtRest, Set.empty)
-
-let tick i rockMap sandMap : SandMap =
-    let sandAtRest, movingSand = sandMap
-
-    let newSandAtRest, newMovingSands =
-        movingSand |> Seq.map (stepSand rockMap sandMap) |> handleMovedSands sandAtRest
-
-    if newMovingSands |> Seq.isEmpty || ((i % 2) = 0) then
-        (newSandAtRest, newMovingSands |> Set.add (500, 0))
-    else
-        newSandAtRest, newMovingSands
 
 let getBottomRock (rockMap: RockMap) =
     match rockMap.FloorPosition with
     | Some floor -> floor
     | None -> rockMap.Rocks |> getBottomCoordinate
 
-let getPositionChar rockMap ((sandAtRest, movingSands): SandMap) position =
+let getPositionChar rockMap ((sandAtRest, _): SandMap) position =
     if rockMap.Rocks |> Set.contains position then
         '#'
     elif sandAtRest |> Set.contains position then
         'o'
-    elif movingSands |> Seq.contains position then
-        '~'
     elif rockMap.FloorPosition.IsSome && (position |> snd) = rockMap.FloorPosition.Value then
         '█'
     else
@@ -176,19 +142,29 @@ let sandInAbyss rockMap (sandPosition: Coordinate) =
     else
         sandPosition |> snd |> (fun y -> y > (rockMap |> getBottomRock))
 
-let isBlocking (sandAtRest, _) = sandAtRest |> Set.contains (500, 0)
+let rec nextSand rockMap sandMap newSand =
+    if sandInAbyss rockMap newSand then
+        newSand
+    else
+        let nextPosition = nextSandPosition rockMap sandMap newSand
 
-let anySandInAbyss rockMap (_, sandMap) =
-    sandMap |> Seq.exists (sandInAbyss rockMap)
+        match nextPosition with
+        | Some pos -> nextSand rockMap sandMap pos
+        | None -> newSand
 
 let rec run i print (rockMap: RockMap) (sandMap: SandMap) : SandMap =
     print rockMap sandMap
 
-    if anySandInAbyss rockMap sandMap || isBlocking sandMap then
+    let nextSand = nextSand rockMap sandMap (500, 0)
+
+    if nextSand = (500, 0) then
         let sandAtRest, _ = sandMap
-        (sandAtRest, Set.empty)
+        (sandAtRest |> Set.add (500, 0), Set.empty)
+    elif sandInAbyss rockMap nextSand then
+        sandMap
     else
-        run (i + 1) print rockMap (tick i rockMap sandMap)
+        let sandAtRest, _ = sandMap
+        run (i + 1) print rockMap (sandAtRest |> Set.add nextSand, Set.empty)
 
 let getResult print rockMap : SandMap =
     let sandMap = (Set.empty, Set.empty)
@@ -200,8 +176,9 @@ let testInput =
 "
 
 let main () =
-    let rockMap = readInputFile "14" |> toRockMap true
-    // let rockMap = testInput |> toRockMap
+    let rockMap = readInputFile "14" |> toRockMap false
+    // let rockMap = testInput |> toRockMap true
+
     let sandAtRest, _ =
         getResult (printMap (rockMap.Rocks |> getLeftCoordinate) (rockMap.Rocks |> getRightCoordinate)) rockMap
 
