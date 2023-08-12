@@ -62,7 +62,7 @@ type RockMap =
     { Rocks: Set<Coordinate>
       FloorPosition: int option }
 
-type SandMap = Set<Coordinate> * Set<Coordinate>
+type SandMap = Set<Coordinate>
 
 let toRockMap withFloor input : RockMap =
     input
@@ -91,9 +91,9 @@ let step dir (x, y) =
     | DownLeft -> (x - 1, y + 1)
     | DownRight -> (x + 1, y + 1)
 
-let canGo (rockMap: RockMap) ((sandAtRest, _): SandMap) target =
+let canGo (rockMap: RockMap) (sandMap: SandMap) target =
     (rockMap.Rocks |> Set.contains target |> not)
-    && (sandAtRest |> Set.contains target |> not)
+    && (sandMap |> Set.contains target |> not)
     && match rockMap.FloorPosition with
        | Some floor -> (target |> snd) < floor
        | None -> true
@@ -108,10 +108,10 @@ let getBottomRock (rockMap: RockMap) =
     | Some floor -> floor
     | None -> rockMap.Rocks |> getBottomCoordinate
 
-let getPositionChar rockMap ((sandAtRest, _): SandMap) position =
+let getPositionChar rockMap (sandMap: SandMap) position =
     if rockMap.Rocks |> Set.contains position then
         '#'
-    elif sandAtRest |> Set.contains position then
+    elif sandMap |> Set.contains position then
         'o'
     elif rockMap.FloorPosition.IsSome && (position |> snd) = rockMap.FloorPosition.Value then
         '█'
@@ -152,23 +152,16 @@ let rec nextSand rockMap sandMap newSand =
         | Some pos -> nextSand rockMap sandMap pos
         | None -> newSand
 
-let rec run i print (rockMap: RockMap) (sandMap: SandMap) : SandMap =
+let rec run print (rockMap: RockMap) (sandMap: SandMap) : SandMap =
     print rockMap sandMap
 
     let nextSand = nextSand rockMap sandMap (500, 0)
 
-    if nextSand = (500, 0) then
-        let sandAtRest, _ = sandMap
-        (sandAtRest |> Set.add (500, 0), Set.empty)
-    elif sandInAbyss rockMap nextSand then
-        sandMap
-    else
-        let sandAtRest, _ = sandMap
-        run (i + 1) print rockMap (sandAtRest |> Set.add nextSand, Set.empty)
+    if nextSand = (500, 0) then sandMap |> Set.add (500, 0)
+    elif sandInAbyss rockMap nextSand then sandMap
+    else run print rockMap (sandMap |> Set.add nextSand)
 
-let getResult print rockMap : SandMap =
-    let sandMap = (Set.empty, Set.empty)
-    run 0 print rockMap sandMap
+let getResult print rockMap : SandMap = run print rockMap Set.empty
 
 let testInput =
     "498,4 -> 498,6 -> 496,6
@@ -176,10 +169,10 @@ let testInput =
 "
 
 let main () =
-    let rockMap = readInputFile "14" |> toRockMap false
+    let rockMap = readInputFile "14" |> toRockMap true
     // let rockMap = testInput |> toRockMap true
 
-    let sandAtRest, _ =
+    let sandMap =
         getResult (printMap (rockMap.Rocks |> getLeftCoordinate) (rockMap.Rocks |> getRightCoordinate)) rockMap
 
-    sandAtRest |> Set.count |> printfn "Part 1: %d"
+    sandMap |> Set.count |> printfn "Part 1: %d"
