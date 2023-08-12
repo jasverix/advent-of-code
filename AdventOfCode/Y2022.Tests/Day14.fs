@@ -25,7 +25,16 @@ let testInput = "498,4 -> 498,6 -> 496,6
 
 [<Test>]
 let ``Run until sand is in abyss``() =
-    let rockMap = testInput |> toRockMap
-    let result = run (fun _ _ -> ()) rockMap []
+    let rockMap = testInput |> toRockMap false
+    let result, _ = getResult (fun _ _ -> ()) rockMap
     
-    Assert.AreEqual(24, result |> List.length)
+    Assert.AreEqual(24, result |> Set.count)
+
+[<Test>]
+let ``Run until sand is blocking``() =
+    let rockMap = testInput |> toRockMap true
+    Assert.IsTrue(rockMap.FloorPosition.IsSome)
+    Assert.AreEqual(11, rockMap.FloorPosition.Value)
+    let result, _ = getResult (fun _ _ -> ()) rockMap
+    
+    Assert.AreEqual(93, result |> Set.count)
