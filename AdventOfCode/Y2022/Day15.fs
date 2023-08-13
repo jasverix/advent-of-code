@@ -57,6 +57,18 @@ let toSensors input =
 let noBeacons beacons coordinates =
     coordinates |> Set.filter (fun c -> not (Set.contains c beacons))
 
+type Range = int * int // from - to
+
+/// get all positions covered by sensor on the given row, returned as x ranges (xFrom, xTo)
+let getSensorCoverOn rowIndex sensor : Range option =
+    let x, y = sensor.Pos
+    let rem = sensor.BeaconDistance - abs (rowIndex - y)
+    if rem >= 0 then Some(x - rem, x + rem) else None
+
+let rangeToList (range: Range) =
+    let s, e = range
+    [ s..e ]
+
 let coveredPositionsOfRow row sensors =
     let countSensorsOnLine =
         sensors
@@ -65,85 +77,52 @@ let coveredPositionsOfRow row sensors =
         |> Seq.distinct
         |> Seq.length
 
-    let sizeOnRow row sensor =
-        let diffY = abs (row - (sensor.Pos |> snd))
-        let rem = sensor.BeaconDistance - diffY
-
-        if rem >= 0 then
-            let x = sensor.Pos |> fst
-            [ (x - rem) .. (x + rem) ]
-        else
-            []
+    let sizeOnRow sensor =
+        sensor
+        |> getSensorCoverOn row
+        |> Option.map rangeToList
+        |> Option.defaultValue List.empty
 
     sensors
-    |> Seq.collect (sizeOnRow row)
+    |> Seq.collect sizeOnRow
     |> Set.ofSeq
     |> Set.count
     |> fun c -> c - countSensorsOnLine
 
 let getTuningFrequency (x, y) = int64 x * 4000000L + int64 y
 
-let getCorners sensors =
-    let maxSensorX =
-        sensors |> List.maxBy (fun s -> s.Pos |> fst) |> (fun s -> s.Pos |> fst)
+let getAnyFreePosition maxCoord sensors =
+    /// keep range within 0..maxCoord
+    let rangeWithinLimits (range: Range) : Range =
+        (max 0 (range |> fst), min maxCoord (range |> snd))
 
-    let maxSensorY =
-        sensors |> List.maxBy (fun s -> s.Pos |> snd) |> (fun s -> s.Pos |> snd)
+    let findGap (coveredRanges: Range seq) =
+        let x1, x2 =
+            coveredRanges
+            |> Seq.reduce (fun (from1, to1) (from2, to2) ->
+                if to1 >= from2 - 1 then
+                    (from1, max to2 to1)
+                else
+                    (-to1 - 1), to2)
 
-    let minSensorX =
-        sensors |> List.minBy (fun s -> s.Pos |> fst) |> (fun s -> s.Pos |> fst)
+        if x1 < 0 || x2 <> maxCoord then Some -x1 else None
 
-    let minSensorY =
-        sensors |> List.minBy (fun s -> s.Pos |> snd) |> (fun s -> s.Pos |> snd)
-
-    let maxBeaconX =
+    [ 0..maxCoord ]
+    |> Seq.map (fun rowIndex ->
         sensors
-        |> List.maxBy (fun s -> s.ClosestBeacon |> fst)
-        |> fun s -> s.ClosestBeacon |> fst
-
-    let maxBeaconY =
-        sensors
-        |> List.maxBy (fun s -> s.ClosestBeacon |> snd)
-        |> fun s -> s.ClosestBeacon |> snd
-
-    let minBeaconX =
-        sensors
-        |> List.minBy (fun s -> s.ClosestBeacon |> fst)
-        |> fun s -> s.ClosestBeacon |> fst
-
-    let minBeaconY =
-        sensors
-        |> List.minBy (fun s -> s.ClosestBeacon |> snd)
-        |> fun s -> s.ClosestBeacon |> snd
-
-    (min minSensorX minBeaconX, min minSensorY minBeaconY), (max maxSensorX maxBeaconX, max maxSensorY maxBeaconY)
-
-let minPos (x1, y1) (x2, y2) = (min x1 x2, min y1 y2)
-let maxPos (x1, y1) (x2, y2) = (max x1 x2, max y1 y2)
-
-let positionsWithinCorners (x1, y1) (x2, y2) =
-    seq {
-        for x in x1 |> Day14.toRange x2 do
-            for y in y1 |> Day14.toRange y2 do
-                yield (x, y)
-    }
-
-let getAnyTrackingSensor sensors pos =
-    sensors |> List.tryFind (fun s -> (s.Pos |> distanceTo pos) <= s.BeaconDistance)
-
-let isFree sensors pos =
-    getAnyTrackingSensor sensors pos |> Option.isNone
-
-let getAnyFreePosition sensors positions =
-    positions |> Seq.tryFind (isFree sensors)
-    
-let getTuningFrequencyOfFreePosition maxCoord sensors =
-    let minCorner, maxCorner =
-        sensors |> getCorners |> (fun (c1, c2) -> (maxPos c1 (0, 0), minPos c2 (maxCoord, maxCoord)))
-        
-    positionsWithinCorners minCorner maxCorner |> getAnyFreePosition sensors
+        |> Seq.choose (getSensorCoverOn rowIndex)
+        |> Seq.map rangeWithinLimits
+        |> Seq.sortBy fst
+        |> findGap)
+    |> Seq.mapi (fun i x -> x |> Option.map (fun o -> (o, i)))
+    |> Seq.find Option.isSome
 
 let main () =
     let sensors = readInputFile "15" |> toSensors
     sensors |> coveredPositionsOfRow 2000000 |> printfn "Part 1: %d"
-    sensors |> getTuningFrequencyOfFreePosition 4000000 |> Option.get |> getTuningFrequency |> printfn "Part 2: %d"
+
+    sensors
+    |> getAnyFreePosition 4000000
+    |> Option.get
+    |> getTuningFrequency
+    |> printfn "Part 2: %d"

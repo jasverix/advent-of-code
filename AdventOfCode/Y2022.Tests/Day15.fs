@@ -48,18 +48,9 @@ let ``Tuning frequency of 14,11`` () =
     Assert.AreEqual(56000011, (14, 11) |> getTuningFrequency)
 
 [<Test>]
-let ``Get corners`` () =
-    Assert.AreEqual("((-2, 0), (25, 22))", testInput |> toSensors |> getCorners |> string)
-
-[<Test>]
-let ``Get tracking sensors`` () =
-    let sensors = testInput |> toSensors
-    Assert.AreEqual("(8, 7)", getAnyTrackingSensor sensors (8, -2) |> Option.get |> fun s -> s.Pos |> string)
-
-[<Test>]
 let ``Get free positions`` () =
     let sensors = testInput |> toSensors
     let position =
-        sensors |> getTuningFrequencyOfFreePosition 20
+        sensors |> getAnyFreePosition 20
 
     Assert.AreEqual("Some((14, 11))", position |> string)
