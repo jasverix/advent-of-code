@@ -81,8 +81,69 @@ let coveredPositionsOfRow row sensors =
     |> Set.count
     |> fun c -> c - countSensorsOnLine
 
+let getTuningFrequency (x, y) = int64 x * 4000000L + int64 y
+
+let getCorners sensors =
+    let maxSensorX =
+        sensors |> List.maxBy (fun s -> s.Pos |> fst) |> (fun s -> s.Pos |> fst)
+
+    let maxSensorY =
+        sensors |> List.maxBy (fun s -> s.Pos |> snd) |> (fun s -> s.Pos |> snd)
+
+    let minSensorX =
+        sensors |> List.minBy (fun s -> s.Pos |> fst) |> (fun s -> s.Pos |> fst)
+
+    let minSensorY =
+        sensors |> List.minBy (fun s -> s.Pos |> snd) |> (fun s -> s.Pos |> snd)
+
+    let maxBeaconX =
+        sensors
+        |> List.maxBy (fun s -> s.ClosestBeacon |> fst)
+        |> fun s -> s.ClosestBeacon |> fst
+
+    let maxBeaconY =
+        sensors
+        |> List.maxBy (fun s -> s.ClosestBeacon |> snd)
+        |> fun s -> s.ClosestBeacon |> snd
+
+    let minBeaconX =
+        sensors
+        |> List.minBy (fun s -> s.ClosestBeacon |> fst)
+        |> fun s -> s.ClosestBeacon |> fst
+
+    let minBeaconY =
+        sensors
+        |> List.minBy (fun s -> s.ClosestBeacon |> snd)
+        |> fun s -> s.ClosestBeacon |> snd
+
+    (min minSensorX minBeaconX, min minSensorY minBeaconY), (max maxSensorX maxBeaconX, max maxSensorY maxBeaconY)
+
+let minPos (x1, y1) (x2, y2) = (min x1 x2, min y1 y2)
+let maxPos (x1, y1) (x2, y2) = (max x1 x2, max y1 y2)
+
+let positionsWithinCorners (x1, y1) (x2, y2) =
+    seq {
+        for x in x1 |> Day14.toRange x2 do
+            for y in y1 |> Day14.toRange y2 do
+                yield (x, y)
+    }
+
+let getAnyTrackingSensor sensors pos =
+    sensors |> List.tryFind (fun s -> (s.Pos |> distanceTo pos) <= s.BeaconDistance)
+
+let isFree sensors pos =
+    getAnyTrackingSensor sensors pos |> Option.isNone
+
+let getAnyFreePosition sensors positions =
+    positions |> Seq.tryFind (isFree sensors)
+    
+let getTuningFrequencyOfFreePosition maxCoord sensors =
+    let minCorner, maxCorner =
+        sensors |> getCorners |> (fun (c1, c2) -> (maxPos c1 (0, 0), minPos c2 (maxCoord, maxCoord)))
+        
+    positionsWithinCorners minCorner maxCorner |> getAnyFreePosition sensors
+
 let main () =
-    readInputFile "15"
-    |> toSensors
-    |> coveredPositionsOfRow 2000000
-    |> printfn "Part 1: %d"
+    let sensors = readInputFile "15" |> toSensors
+    sensors |> coveredPositionsOfRow 2000000 |> printfn "Part 1: %d"
+    sensors |> getTuningFrequencyOfFreePosition 4000000 |> Option.get |> getTuningFrequency |> printfn "Part 2: %d"

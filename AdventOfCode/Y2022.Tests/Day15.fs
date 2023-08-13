@@ -13,7 +13,7 @@ let ``Get range from position`` () =
     )
 
 [<Test>]
-let ``Get distance between``() =
+let ``Get distance between`` () =
     Assert.AreEqual(5, (10, 10) |> distanceTo (15, 10))
     Assert.AreEqual(5, (10, 10) |> distanceTo (7, 8))
     Assert.AreEqual(5, (10, 10) |> distanceTo (6, 9))
@@ -21,8 +21,9 @@ let ``Get distance between``() =
     Assert.AreEqual(5, (10, 10) |> distanceTo (11, 14))
     Assert.AreEqual(5, (10, 10) |> distanceTo (11, 6))
     Assert.AreEqual(5, (10, 10) |> distanceTo (10, 15))
-    
-let testInput = "Sensor at x=2, y=18: closest beacon is at x=-2, y=15
+
+let testInput =
+    "Sensor at x=2, y=18: closest beacon is at x=-2, y=15
 Sensor at x=9, y=16: closest beacon is at x=10, y=16
 Sensor at x=13, y=2: closest beacon is at x=15, y=3
 Sensor at x=12, y=14: closest beacon is at x=10, y=16
@@ -39,5 +40,26 @@ Sensor at x=20, y=1: closest beacon is at x=15, y=3
 "
 
 [<Test>]
-let ``Covered positions at row 10``() =
+let ``Covered positions at row 10`` () =
     Assert.AreEqual(26, testInput |> toSensors |> coveredPositionsOfRow 10)
+
+[<Test>]
+let ``Tuning frequency of 14,11`` () =
+    Assert.AreEqual(56000011, (14, 11) |> getTuningFrequency)
+
+[<Test>]
+let ``Get corners`` () =
+    Assert.AreEqual("((-2, 0), (25, 22))", testInput |> toSensors |> getCorners |> string)
+
+[<Test>]
+let ``Get tracking sensors`` () =
+    let sensors = testInput |> toSensors
+    Assert.AreEqual("(8, 7)", getAnyTrackingSensor sensors (8, -2) |> Option.get |> fun s -> s.Pos |> string)
+
+[<Test>]
+let ``Get free positions`` () =
+    let sensors = testInput |> toSensors
+    let position =
+        sensors |> getTuningFrequencyOfFreePosition 20
+
+    Assert.AreEqual("Some((14, 11))", position |> string)
