@@ -58,13 +58,28 @@ let noBeacons beacons coordinates =
     coordinates |> Set.filter (fun c -> not (Set.contains c beacons))
 
 let coveredPositionsOfRow row sensors =
-    let beacons = sensors |> beaconPositions
+    let countSensorsOnLine =
+        sensors
+        |> Seq.collect (fun s -> [ s.Pos |> snd; s.ClosestBeacon |> snd ])
+        |> Seq.where (fun y -> y = row)
+        |> Seq.distinct
+        |> Seq.length
+
+    let sizeOnRow row sensor =
+        let diffY = abs (row - (sensor.Pos |> snd))
+        let rem = sensor.BeaconDistance - diffY
+
+        if rem >= 0 then
+            let x = sensor.Pos |> fst
+            [ (x - rem) .. (x + rem) ]
+        else
+            []
 
     sensors
-    |> coveredPositions
-    |> Set.filter (fun (x, _) -> x = row)
-    |> noBeacons beacons
+    |> Seq.collect (sizeOnRow row)
+    |> Set.ofSeq
     |> Set.count
+    |> fun c -> c - countSensorsOnLine
 
 let main () =
     readInputFile "15"
