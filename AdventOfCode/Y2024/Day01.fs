@@ -23,6 +23,15 @@ let sortLists (lists: ListPair): ListPair =
 let totalDistance (lists: ListPair): int =
     lists |> sortLists |> runNextDistance [] |> List.sum
     
+let countOccurrences (list: LocationId list) =
+    list |> List.countBy (fun id -> id) |> dict
+    
+let totalSimilarityScore lists =
+    let list1, list2 = lists
+    let occurrences = list2 |> countOccurrences
+    let countItem item = occurrences |> Dict.valueOrDefault item 0 |> (*) item
+    list1 |> List.map countItem |> List.sum
+    
 let parseInput (input: string): ListPair =
     input |> Str.trim |> Str.split "\n"
         |> List.map (fun line ->
@@ -32,3 +41,4 @@ let parseInput (input: string): ListPair =
 
 let main() =
     Utils.readInputFile "01" |> parseInput |> totalDistance |> printfn "%d\n"
+    Utils.readInputFile "01" |> parseInput |> totalSimilarityScore |> printfn "%d\n"

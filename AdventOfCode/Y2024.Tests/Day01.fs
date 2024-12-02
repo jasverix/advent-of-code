@@ -18,3 +18,9 @@ let ``Get total distance`` () =
         Is.EqualTo(11)
     )
 
+[<Test>]
+let ``Get similarity score``() =
+    Assert.That(
+        testInput |> parseInput |> totalSimilarityScore,
+        Is.EqualTo(31)
+        )
