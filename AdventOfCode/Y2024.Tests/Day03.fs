@@ -3,7 +3,7 @@ module Y2024.Tests.Day03
 open NUnit.Framework
 open Y2024.Day03
 
-let testInput = "xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))"
+let testInput = "xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))"
 
 [<Test>]
 let ``Handle mul requests`` () =
@@ -12,4 +12,4 @@ let ``Handle mul requests`` () =
     
 [<Test>]
 let ``Handle test input part 1`` () =
-    Assert.That(testInput |> getMultiplications, Is.EqualTo 161)
+    Assert.That(testInput |> getMultiplications, Is.EqualTo 48)

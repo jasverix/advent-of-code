@@ -36,7 +36,7 @@ let parseInput (input: string): ListPair =
     input |> Str.trim |> Str.split "\n"
         |> List.map (fun line ->
             let parts = line |> Str.split " " |> List.filter (fun i -> i <> "") |> List.map Str.trim |> List.map int
-            parts.[0], parts.[1])
+            parts[0], parts[1])
         |> List.unzip
 
 let main() =
