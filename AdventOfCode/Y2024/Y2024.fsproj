@@ -12,6 +12,7 @@
         <Compile Include="Utils.fs" />
         <Compile Include="Str.fs" />
         <Compile Include="Day01.fs" />
+        <Compile Include="Day02.fs" />
     </ItemGroup>
 
 </Project>

@@ -7,3 +7,5 @@ let popItem (lst: list<'T>) : 'T * list<'T> =
         (Unchecked.defaultof<'T>, List.empty)
     else
         (lst |> List.last, lst |> List.take (lst.Length - 1))
+        
+let countIf predicate = List.filter predicate >> List.length
