@@ -23,7 +23,7 @@ let ``Make word map`` () =
     Assert.That(wordMap[1][0], Is.EqualTo 'M')
     Assert.That(wordMap[1][1], Is.EqualTo 'S')
     Assert.That(wordMap[2][0], Is.EqualTo 'A')
-    
+
 [<Test>]
 let ``Get words`` () =
     let wordMap = testInput |> parseInput
@@ -35,7 +35,7 @@ let ``Get words`` () =
     Assert.That(wordMap |> getWordTLTBR 4 0 4 |> Option.get, Is.EqualTo "XMAS")
     Assert.That(wordMap |> getWordBRTTL 6 4 4 |> Option.get, Is.EqualTo "XSXM")
     Assert.That(wordMap |> getWordBLTTR 1 5 4 |> Option.get, Is.EqualTo "XAMX")
-    
+
 [<Test>]
 let ``No word`` () =
     let wordMap = testInput |> parseInput
@@ -45,3 +45,27 @@ let ``No word`` () =
 [<Test>]
 let ``Count occurences of word`` () =
     Assert.That(testInput |> countOccurencesOfWord "XMAS", Is.EqualTo 18)
+
+[<Test>]
+let ``Simple crossing words`` () =
+    let words = [ 1, 1, ("MAS", TLTBR); 3, 1, ("XMAS", TRTBL) ]
+    hasAnyCrossingWords words (3, 1, ("XMAS", TRTBL)) |> Assert.That
+
+[<Test>]
+let ``Not crossing words`` () =
+    let words = [ 1, 1, ("MAS", TLTBR); 4, 1, ("XMAS", TRTBL) ]
+    hasAnyCrossingWords words (4, 1, ("XMAS", TRTBL)) |> not |> Assert.That
+
+[<Test>]
+let ``Crossing words 1`` () =
+    let words = testInput |> findWordsWithCoordinates "MAS"
+    hasAnyCrossingWords words (1, 0, ("MAS", TRTBL)) |> Assert.That
+
+[<Test>]
+let ``Not crossing words 2`` () =
+    let words = testInput |> findWordsWithCoordinates "MAS"
+    hasAnyCrossingWords words (6, 0, ("MAS", LTR)) |> not |> Assert.That
+
+[<Test>]
+let ``Count occurences of X-Mas`` () =
+    Assert.That(testInput |> findCrossMases |> List.length, Is.EqualTo 9)

@@ -9,6 +9,7 @@
         <Content Include="Inputs\day-01.txt" />
         <Content Include="Inputs\day-02.txt" />
         <Content Include="Inputs\day-03.txt" />
+        <Content Include="Inputs\day-04.txt" />
         <Compile Include="List.fs" />
         <Compile Include="Dict.fs" />
         <Compile Include="Utils.fs" />
