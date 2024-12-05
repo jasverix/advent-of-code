@@ -44,4 +44,14 @@ let ``Update mathces rule`` () =
 
 [<Test>]
 let ``Find calculated number`` () =
-    Assert.That(testInput |> parseInput |> getCalculatedNumber, Is.EqualTo 143)
+    Assert.That(testInput |> parseInput |> getNumberByValidUpdates, Is.EqualTo 143)
+
+[<Test>]
+let ``Modify update`` () =
+    let update = [ 75; 47; 61; 53; 29 ]
+    Assert.That(modifyUpdateToMatchRule update (47, 53), Is.EqualTo [ 75; 47; 61; 53; 29 ])
+    Assert.That(modifyUpdateToMatchRule update (61, 75), Is.EqualTo [ 47; 61; 75; 53; 29 ])
+    
+[<Test>]
+let ``Find calculated number 2`` () =
+    Assert.That(testInput |> parseInput |> getNumberByInvalidUpdates, Is.EqualTo 123)
