@@ -10,6 +10,7 @@
         <Content Include="Inputs\day-02.txt" />
         <Content Include="Inputs\day-03.txt" />
         <Content Include="Inputs\day-04.txt" />
+        <Content Include="Inputs\day-05.txt" />
         <Compile Include="List.fs" />
         <Compile Include="Dict.fs" />
         <Compile Include="Utils.fs" />
@@ -18,6 +19,7 @@
         <Compile Include="Day02.fs" />
         <Compile Include="Day03.fs" />
         <Compile Include="Day04.fs" />
+        <Compile Include="Day05.fs" />
     </ItemGroup>
 
 </Project>
