@@ -105,13 +105,41 @@ let rec progressGuardPath (position, direction) map path =
     let nextPosition = move position direction map
 
     match nextPosition with
-    | Some newPosition -> progressGuardPath newPosition map (path @ [ newPosition ])
+    | Some newPosition ->
+        if path |> List.contains newPosition then
+            path @ [ (-1, -1), Up ]
+        else
+            progressGuardPath newPosition map (path @ [ newPosition ])
     | None -> path
 
 let guardPath map =
     let guardPosition, guardDirection = findGuardPosition map
     progressGuardPath (guardPosition, guardDirection) map [ guardPosition, guardDirection ]
-    
+
+let pathIsLoop (path: ((int * int) * Direction) list) = path |> List.last |> fst = (-1, -1)
+
+let mapIsLoop map =
+    try
+        map |> guardPath |> pathIsLoop
+    with _ ->
+        false
+
+let withMapItem (x, y) item (map: AreaMap) : AreaMap =
+    let updatedRow = map[y] |> Map.add x item
+    map |> Map.add y updatedRow
+
+let willBeLoop pos map =
+    map |> withMapItem pos Obstacle |> mapIsLoop
+
+let findLoopPositions map =
+    map
+    |> guardPath
+    |> List.map fst
+    |> List.skip 1
+    |> List.filter (fun pos -> willBeLoop pos map)
+    |> List.distinct
+    |> List.sortBy fst
+
 let drawItem item =
     match item with
     | GuardUp -> '^'
@@ -120,12 +148,19 @@ let drawItem item =
     | GuardRight -> '>'
     | Obstacle -> '#'
     | Empty -> '.'
-    
+
 let drawMapLine (line: Map<int, MapItem>) =
     line |> Map.toList |> List.map (fun (_, item) -> drawItem item) |> Str.ofSeq
 
 let drawMap (map: AreaMap) =
-    map |> Map.toList |> List.map (fun (_, line) -> drawMapLine line) |> String.concat "\n"
+    map
+    |> Map.toList
+    |> List.map (fun (_, line) -> drawMapLine line)
+    |> String.concat "\n"
 
 let main () =
-    Utils.readInputFile "06" |> parseMap |> guardPath |> List.distinctBy fst |> List.length |> printfn "Part 1: %d"
+    let map = Utils.readInputFile "06" |> parseMap
+
+    map |> guardPath |> List.distinctBy fst |> List.length |> printfn "Part 1: %d"
+    
+    map |> findLoopPositions |> List.length |> printfn "Part 2: %d"

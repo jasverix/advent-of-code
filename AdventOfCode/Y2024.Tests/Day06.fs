@@ -85,4 +85,12 @@ let ``Correct guard path`` () =
         ),
         "Could not find correct guard path\n" + (testInput |> parseMap |> drawMap)
     )
+
     Assert.That(testInput |> parseMap |> guardPath |> List.distinctBy fst |> List.length, Is.EqualTo 41)
+
+[<Test>]
+let ``Get loop positions`` () =
+    Assert.That(
+        testInput |> parseMap |> findLoopPositions |> Y2024.List.toString,
+        Is.EqualTo([ 3, 6; 6, 7; 7, 7; 1, 8; 3, 8; 7, 9 ] |> List.sortBy fst |> Y2024.List.toString)
+    )
